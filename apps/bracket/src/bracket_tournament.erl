@@ -30,7 +30,8 @@ tournament(Riders) when is_list(Riders) ->
 %%% Internal functions
 %%%===================================================================
 tourny(Riders) ->
-    Riders.
+    Matches = bracket_math:matches(Riders),
+    bracket_math:rounds(Matches, []).
 
 seed(Riders) ->
     seed(Riders, 0, []).

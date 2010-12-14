@@ -9,7 +9,8 @@
 -module(bracket_math).
 
 %% API
--export([rounds/1, byes/1, tournament/1, is_pow2/1]).
+%%-export([rounds/1, byes/1, tournament/1, is_pow2/1]).
+-compile(export_all).
 
 %%%===================================================================
 %%% API
@@ -48,8 +49,8 @@ tournament(N) when is_integer(N) ->
     end.
 
 
-rounds(M, Acc) when is_integer(M) ->
-    lists:reverse([M|Acc]);
+rounds({rider, _, _}=R, Acc) ->
+    lists:reverse([R|Acc]);
 rounds(M, Acc) ->
     rounds(next_round(M), [M|Acc]).
 
@@ -73,10 +74,14 @@ matches(N) when is_integer(N) ->
 %% @spec next_round(Round::term()) -> {Rounds::term()}
 %% @end
 %%--------------------------------------------------------------------
-
-next_round({A, B}=T) when is_integer(A), is_integer(B) ->
-    smaller(T);
-next_round({T, B}) when is_tuple(T), is_tuple(B) ->
+next_round({{rider, {seed, A}, _}=R1, {rider, {seed, B}, _}=R2}) ->
+    case smaller({A, B}) of
+	A ->
+	    R1;
+	B ->
+	    R2
+    end;
+next_round({T, B}) ->
     {next_round(T), next_round(B)}.
 
 smaller({TH, BH}) when is_integer(TH), is_integer(BH), TH =< BH ->
