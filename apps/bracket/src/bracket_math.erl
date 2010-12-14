@@ -9,7 +9,7 @@
 -module(bracket_math).
 
 %% API
--export([rounds/1, byes/1, matches/1]).
+-export([rounds/1, byes/1, matches/1, tournament/1]).
 
 %%%===================================================================
 %%% API
@@ -33,12 +33,33 @@ byes(Competitors) when is_integer(Competitors) ->
 
 
 %%--------------------------------------------------------------------
+%% @doc builds a datastructure of all the matches in a tournament.
+%% @spec tournament(N::integer) -> [Matches::term()]
+%% @end
+%%--------------------------------------------------------------------
+tournament(N) when is_integer(N) ->
+    case is_pow2(N) of
+	false ->
+	    mustbe_power_of_2;
+	true ->
+	    Matches = matches(N),
+	    rounds(Matches, [])
+    end.
+
+
+rounds(M, Acc) when is_integer(M) ->
+    lists:reverse([M|Acc]);
+rounds(M, Acc) ->
+    rounds(next_round(M), [M|Acc]).
+
+
+%%--------------------------------------------------------------------
 %% @doc Generate the matches for the first round of a square single elimination tournament
 %% @spec matches(N) -> {TopHalf, BottomHalf}
 %% @end
 %%--------------------------------------------------------------------
 matches(L) when length(L) =:= 2 ->
-    L;
+    list_to_tuple(L);
 matches(L) when is_list(L) ->
     {L1, L2} = lists:split(length(L) div 2, L),
     L3 = lists:zip(L1, lists:reverse(L2)),
@@ -50,6 +71,26 @@ matches(N) when is_integer(N) ->
 	false ->
 	    must_be_power_of_2 %% Obv this needs dealing with
     end.
+
+%%--------------------------------------------------------------------
+%% @doc next_round the matches for the all the following round of  param Round
+%% @spec next_round(Round::term()) -> {Rounds::term()}
+%% @end
+%%--------------------------------------------------------------------
+
+next_round({A, B}=T) when is_integer(A), is_integer(B) ->
+    smaller(T);
+next_round({T, B}) when is_tuple(T), is_tuple(B) ->
+    {next_round(T), next_round(B)}.
+
+
+
+smaller({TH, BH}) when is_integer(TH), is_integer(BH), TH =< BH ->
+    TH;
+smaller({TH, BH}) when is_integer(TH), is_integer(BH), BH < TH ->
+    BH.
+
+
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
