@@ -9,7 +9,7 @@
 -module(bracket_math).
 
 %% API
--export([rounds/1, byes/1, matches/1, tournament/1]).
+-export([rounds/1, byes/1, tournament/1]).
 
 %%%===================================================================
 %%% API
@@ -40,7 +40,7 @@ byes(Competitors) when is_integer(Competitors) ->
 tournament(N) when is_integer(N) ->
     case is_pow2(N) of
 	false ->
-	    mustbe_power_of_2;
+	    tournament(N + ceiling(byes(N)));
 	true ->
 	    Matches = matches(N),
 	    rounds(Matches, [])
@@ -65,12 +65,7 @@ matches(L) when is_list(L) ->
     L3 = lists:zip(L1, lists:reverse(L2)),
     matches(L3);
 matches(N) when is_integer(N) ->
-    case is_pow2(N) of
-	true ->
-	    matches(lists:seq(1, N));
-	false ->
-	    must_be_power_of_2 %% Obv this needs dealing with
-    end.
+    matches(lists:seq(1, N)).
 
 %%--------------------------------------------------------------------
 %% @doc next_round the matches for the all the following round of  param Round
