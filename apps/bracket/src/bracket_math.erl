@@ -9,7 +9,7 @@
 -module(bracket_math).
 
 %% API
--export([rounds/1, byes/1, tournament/1]).
+-export([rounds/1, byes/1, tournament/1, is_pow2/1]).
 
 %%%===================================================================
 %%% API
@@ -29,7 +29,8 @@ rounds(Competitors) when is_integer(Competitors) ->
 %% @end
 %%--------------------------------------------------------------------
 byes(Competitors) when is_integer(Competitors) ->
-    math:pow(2, rounds(Competitors)) - Competitors.
+    ceiling(math:pow(2, rounds(Competitors)) - Competitors).
+
 
 
 %%--------------------------------------------------------------------
@@ -40,7 +41,7 @@ byes(Competitors) when is_integer(Competitors) ->
 tournament(N) when is_integer(N) ->
     case is_pow2(N) of
 	false ->
-	    tournament(N + ceiling(byes(N)));
+	    tournament(N + byes(N));
 	true ->
 	    Matches = matches(N),
 	    rounds(Matches, [])
@@ -77,8 +78,6 @@ next_round({A, B}=T) when is_integer(A), is_integer(B) ->
     smaller(T);
 next_round({T, B}) when is_tuple(T), is_tuple(B) ->
     {next_round(T), next_round(B)}.
-
-
 
 smaller({TH, BH}) when is_integer(TH), is_integer(BH), TH =< BH ->
     TH;
