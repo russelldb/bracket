@@ -45,14 +45,14 @@ tournament(N) when is_integer(N) ->
 	    tournament(N + byes(N));
 	true ->
 	    Matches = matches(N),
-	    rounds(Matches, [])
+	    rounds(Matches, 1, [])
     end.
 
 
-rounds({rider, _, _}=R, Acc) ->
-    lists:reverse([R|Acc]);
-rounds(M, Acc) ->
-    rounds(next_round(M), [M|Acc]).
+rounds({rider, _, _}=R, RNum, Acc) ->
+    lists:reverse([{round, {num, RNum}, {matches, R}}|Acc]);
+rounds(M, R, Acc) ->
+    rounds(next_round(M), R+1, [{round, {num, R}, {matches, M}}|Acc]).
 
 
 %%--------------------------------------------------------------------
@@ -88,6 +88,29 @@ smaller({TH, BH}) when is_integer(TH), is_integer(BH), TH =< BH ->
     TH;
 smaller({TH, BH}) when is_integer(TH), is_integer(BH), BH < TH ->
     BH.
+
+
+
+%%% One day this will generate the sequences of matches for round one, one day
+s(_, 0) ->
+ 0;
+s(1, K) ->
+    1;
+s(2, K) ->
+    math:pow(2, K);
+s(3, K) ->
+    s(2, K) / 2;
+s(4, K) ->
+    s(3, K) + 1;
+s(5, K) ->
+    s(3, K) / 2;
+s(6, K) ->
+    (s(2, K) - s(5, K)) + 1;
+s(7, K) ->
+    s(5, K) + 1;
+s(N, K) ->
+    0.
+
 
 
 %%%===================================================================
