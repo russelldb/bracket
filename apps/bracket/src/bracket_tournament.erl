@@ -10,7 +10,7 @@
 -module(bracket_tournament).
 
 %% API
--export([tournament/1, add_byes/1, seed/1]).
+-export([tournament/1]).
 
 %%%===================================================================
 %%% API
@@ -33,6 +33,7 @@ tourny(Riders) ->
     Matches = bracket_math:matches(Riders),
     bracket_math:rounds(Matches, 1, []).
 
+%%% Really need to randomise the seeding of the unseeded riders...
 seed(Riders) ->
     seed(Riders, 0, []).
 
@@ -43,8 +44,6 @@ seed([{rider, {seed, 0}, Name}|Riders], CurrentSeed, Seeded) ->
     seed(Riders, Seed, [{rider, {seed, Seed}, Name}|Seeded]);
 seed([{rider, {seed, N}, _}=Rider|Riders], _CurrentSeed, Seeded) ->
     seed(Riders, N, [Rider|Seeded]).
-
-
 
 add_byes(Riders) ->
     Len = length(Riders),

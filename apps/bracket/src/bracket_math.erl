@@ -33,28 +33,6 @@ byes(Competitors) when is_integer(Competitors) ->
     ceiling(math:pow(2, rounds(Competitors)) - Competitors).
 
 
-
-%%--------------------------------------------------------------------
-%% @doc builds a datastructure of all the matches in a tournament.
-%% @spec tournament(N::integer) -> [Matches::term()]
-%% @end
-%%--------------------------------------------------------------------
-tournament(N) when is_integer(N) ->
-    case is_pow2(N) of
-	false ->
-	    tournament(N + byes(N));
-	true ->
-	    Matches = matches(N),
-	    rounds(Matches, 1, [])
-    end.
-
-
-rounds({rider, _, _}=R, RNum, Acc) ->
-    lists:reverse([{round, {num, RNum}, {matches, R}}|Acc]);
-rounds(M, R, Acc) ->
-    rounds(next_round(M), R+1, [{round, {num, R}, {matches, M}}|Acc]).
-
-
 %%--------------------------------------------------------------------
 %% @doc Generate the matches for the first round of a square single elimination tournament
 %% @spec matches(N) -> {TopHalf, BottomHalf}
@@ -65,9 +43,17 @@ matches(L) when length(L) =:= 2 ->
 matches(L) when is_list(L) ->
     {L1, L2} = lists:split(length(L) div 2, L),
     L3 = lists:zip(L1, lists:reverse(L2)),
-    matches(L3);
-matches(N) when is_integer(N) ->
-    matches(lists:seq(1, N)).
+    matches(L3).
+
+%%--------------------------------------------------------------------
+%% @doc All the rounds following the starting matches
+%% @spec rounds(1stRound::term()) -> {Rounds::term()}
+%% @end
+%%--------------------------------------------------------------------
+rounds({rider, _, _}=R, RNum, Acc) ->
+    lists:reverse([{round, {num, RNum}, {matches, R}}|Acc]);
+rounds(M, R, Acc) ->
+    rounds(next_round(M), R+1, [{round, {num, R}, {matches, M}}|Acc]).
 
 %%--------------------------------------------------------------------
 %% @doc next_round the matches for the all the following round of  param Round
@@ -89,30 +75,6 @@ smaller({TH, BH}) when is_integer(TH), is_integer(BH), TH =< BH ->
 smaller({TH, BH}) when is_integer(TH), is_integer(BH), BH < TH ->
     BH.
 
-
-
-%%% One day this will generate the sequences of matches for round one, one day
-s(_, 0) ->
- 0;
-s(1, K) ->
-    1;
-s(2, K) ->
-    math:pow(2, K);
-s(3, K) ->
-    s(2, K) / 2;
-s(4, K) ->
-    s(3, K) + 1;
-s(5, K) ->
-    s(3, K) / 2;
-s(6, K) ->
-    (s(2, K) - s(5, K)) + 1;
-s(7, K) ->
-    s(5, K) + 1;
-s(N, K) ->
-    0.
-
-
-
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
@@ -123,7 +85,6 @@ ceiling(X) ->
         Pos when Pos > 0 -> T + 1;
         _ -> T
     end.
-
 
 log2(N) when is_integer(N) ->
     math:log(N) / math:log(2).
