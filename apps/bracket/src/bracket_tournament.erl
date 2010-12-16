@@ -10,7 +10,7 @@
 -module(bracket_tournament).
 
 %% API
--export([tournament/1]).
+-export([tournament/1, first_round/1, next_round/2]).
 
 %%%===================================================================
 %%% API
@@ -25,6 +25,13 @@ tournament(Riders) when is_list(Riders) ->
     Riders2 = add_byes(Riders),
     Seeded = seed(Riders2),
     tourny(Seeded).
+
+first_round(Riders) when is_list(Riders) ->
+    Riders2 = add_byes(Riders),
+    Seeded = seed(Riders2),
+    Matches = bracket_math:matches(Seeded),
+    R1 = bracket_math:flatten([Matches], 1, 1, []),
+    next_round(hd(R1), 4).
 
 %%%===================================================================
 %%% Internal functions
@@ -59,9 +66,22 @@ add_byes(Riders) ->
     end.
 
 %%% Takes a Term::round and generates the next round from it
-next_round(Round) ->
-    next_matches(Round, []).
+next_round({round, RNum, {matches, Matches}}, MNum) ->
+    NextMatches = next_matches(Matches, MNum, []),
+    next_round({round, RNum+1, {matches, NextMatches}}, MNum + length(NextMatches)).
 
+next_matches([], _, Acc) ->
+    lists:reverse(Acc);
+next_matches([{match, MNum1, {riders, R1, R2}}], MNum, Acc) ->
+    next_matches([], MNum, [{winner, higher_seed(R1, R2)}|Acc]);
+next_matches([{match, MNum1, {riders, R1, R2}}, {match, MNum2, {riders, R3, R4}}|Matches], MNum, Acc) ->
+    NextMatchNum = MNum +1,
+    Match = {match, NextMatchNum, {riders, higher_seed(R1, R2), higher_seed(R3, R4)}},
+    next_matches(Matches, NextMatchNum, [Match|Acc]).
 
+higher_seed({rider, {seed, A}, _}=R1, {rider, {seed, B}, _}=R2) when A =< B ->
+    R1;
+higher_seed({rider, {seed, A}, _}=R1, {rider, {seed, B}, _}=R2) when B =< A ->
+    R2.
 
     
