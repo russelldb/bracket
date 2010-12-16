@@ -31,12 +31,14 @@ tournament(Riders) when is_list(Riders) ->
 %%%===================================================================
 tourny(Riders) ->
     Matches = bracket_math:matches(Riders),
-    bracket_math:rounds(Matches, 1, []).
+    Tourny = bracket_math:rounds(Matches, []),
+    bracket_math:flatten_tournament(Tourny).
 
 %%% Really need to randomise the seeding of the unseeded riders...
 seed(Riders) ->
     seed(Riders, 0, []).
 
+%%% If any riders have a zero (0) seed, give them the next available seed (Zero is unseeded)
 seed([], _, Seeded) ->
     lists:reverse(Seeded);
 seed([{rider, {seed, 0}, Name}|Riders], CurrentSeed, Seeded) ->
@@ -45,6 +47,8 @@ seed([{rider, {seed, 0}, Name}|Riders], CurrentSeed, Seeded) ->
 seed([{rider, {seed, N}, _}=Rider|Riders], _CurrentSeed, Seeded) ->
     seed(Riders, N, [Rider|Seeded]).
 
+%%% Add any byes needed to the list of riders. Are added to the end of the list and they are all
+%%% Unseeded
 add_byes(Riders) ->
     Len = length(Riders),
     case bracket_math:is_pow2(Len) of
@@ -53,3 +57,11 @@ add_byes(Riders) ->
 	false  ->
 	    Riders ++ lists:duplicate(bracket_math:byes(Len), {rider, {seed, 0}, {name, bye}})
     end.
+
+%%% Takes a Term::round and generates the next round from it
+next_round(Round) ->
+    next_matches(Round, []).
+
+
+
+    
