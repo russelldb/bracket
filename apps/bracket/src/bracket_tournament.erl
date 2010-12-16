@@ -57,3 +57,11 @@ add_byes(Riders) ->
 	false  ->
 	    Riders ++ lists:duplicate(bracket_math:byes(Len), {rider, {seed, 0}, {name, bye}})
     end.
+
+%%% Takes a Term::round and generates the next round from it
+next_round(Round) ->
+    next_matches(Round, []).
+
+
+
+    
