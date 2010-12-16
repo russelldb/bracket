@@ -31,7 +31,13 @@ first_round(Riders) when is_list(Riders) ->
     Seeded = seed(Riders2),
     Matches = bracket_math:matches(Seeded),
     R1 = bracket_math:flatten([Matches], 1, 1, []),
-    next_round(hd(R1), 4).
+    rounds(R1, bracket_math:rounds(length(Riders))).
+
+
+rounds(Rounds, RCount) when is_list(Rounds), length(Rounds) =:= RCount ->
+    lists:reverse(Rounds);
+rounds([Round|_]=Rounds, RCount) ->
+    rounds([next_round(Round, 4)|Rounds], RCount).
 
 %%%===================================================================
 %%% Internal functions
@@ -68,7 +74,7 @@ add_byes(Riders) ->
 %%% Takes a Term::round and generates the next round from it
 next_round({round, RNum, {matches, Matches}}, MNum) ->
     NextMatches = next_matches(Matches, MNum, []),
-    next_round({round, RNum+1, {matches, NextMatches}}, MNum + length(NextMatches)).
+   {round, RNum+1, {matches, NextMatches}}.
 
 next_matches([], _, Acc) ->
     lists:reverse(Acc);
