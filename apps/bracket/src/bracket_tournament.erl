@@ -31,7 +31,8 @@ tournament(Riders) when is_list(Riders) ->
 %%%===================================================================
 tourny(Riders) ->
     Matches = bracket_math:matches(Riders),
-    bracket_math:rounds(Matches, []).
+    Tourny = bracket_math:rounds(Matches, []),
+    bracket_math:flatten_tournament(Tourny).
 
 %%% Really need to randomise the seeding of the unseeded riders...
 seed(Riders) ->
