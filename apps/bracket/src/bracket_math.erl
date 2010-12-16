@@ -93,9 +93,11 @@ log2(N) when is_integer(N) ->
 is_pow2(X) ->
     ( (X > 0) and  ((X band (X - 1)) == 0) ).
 
+%%% Take the tournament and make it flat
 flatten_tournament(Tournament) ->
     flatten(Tournament, 1, 1, []).
 
+%%Flattens the rounds of a tournment and adds round and match numbers to the data
 flatten([], _, _, Tournament) ->
     lists:reverse(Tournament);
 flatten([Round|Rounds], MCount, RoundCount, Tournament) ->
@@ -104,6 +106,7 @@ flatten([Round|Rounds], MCount, RoundCount, Tournament) ->
 			    MCount, L),
     flatten(Rounds, C, RoundCount+1, [{round, RoundCount, {matches, R}}|Tournament]).
 
+%%% Matches are deeply nested tuples, this un-nests them
 flatten_matches({rider, _, _}=R) ->
     [{winner, R}];
 flatten_matches({{rider, _, _}=R1, {rider, _, _}=R2}) ->
@@ -113,6 +116,7 @@ flatten_matches({T1, T2}) ->
     BHM = flatten_matches(T2),
     lists:flatten([THM] ++ [BHM]).
 
+%%% Used to map/fold the match into a match with a number
 mapfoldlfun({match, R1, R2}, Acc) ->
     {{match, Acc, {riders, R1, R2}}, Acc+1};
 mapfoldlfun(X, Acc) ->

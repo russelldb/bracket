@@ -38,6 +38,7 @@ tourny(Riders) ->
 seed(Riders) ->
     seed(Riders, 0, []).
 
+%%% If any riders have a zero (0) seed, give them the next available seed (Zero is unseeded)
 seed([], _, Seeded) ->
     lists:reverse(Seeded);
 seed([{rider, {seed, 0}, Name}|Riders], CurrentSeed, Seeded) ->
@@ -46,6 +47,8 @@ seed([{rider, {seed, 0}, Name}|Riders], CurrentSeed, Seeded) ->
 seed([{rider, {seed, N}, _}=Rider|Riders], _CurrentSeed, Seeded) ->
     seed(Riders, N, [Rider|Seeded]).
 
+%%% Add any byes needed to the list of riders. Are added to the end of the list and they are all
+%%% Unseeded
 add_byes(Riders) ->
     Len = length(Riders),
     case bracket_math:is_pow2(Len) of
