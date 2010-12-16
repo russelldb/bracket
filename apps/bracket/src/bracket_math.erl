@@ -45,15 +45,16 @@ matches(L) when is_list(L) ->
     L3 = lists:zip(L1, lists:reverse(L2)),
     matches(L3).
 
+
 %%--------------------------------------------------------------------
 %% @doc All the rounds following the starting matches
 %% @spec rounds(1stRound::term()) -> {Rounds::term()}
 %% @end
 %%--------------------------------------------------------------------
-rounds({rider, _, _}=R, RNum, Acc) ->
-    lists:reverse([{round, {num, RNum}, {matches, R}}|Acc]);
-rounds(M, R, Acc) ->
-    rounds(next_round(M), R+1, [{round, {num, R}, {matches, M}}|Acc]).
+rounds({rider, _, _}=R, Acc) ->
+    lists:reverse([R|Acc]);
+rounds(M, Acc) ->
+    rounds(next_round(M), [M|Acc]).
 
 %%--------------------------------------------------------------------
 %% @doc next_round the matches for the all the following round of  param Round
@@ -91,3 +92,29 @@ log2(N) when is_integer(N) ->
 
 is_pow2(X) ->
     ( (X > 0) and  ((X band (X - 1)) == 0) ).
+
+flatten_tournament(Tournament) ->
+    flatten(Tournament, 1, 1, []).
+
+flatten([], _, _, Tournament) ->
+    lists:reverse(Tournament);
+flatten([Round|Rounds], MCount, RoundCount, Tournament) ->
+    L = flatten_matches(Round),
+    {R, C} = lists:mapfoldl(fun mapfoldlfun/2,
+			    MCount, L),
+    flatten(Rounds, C, RoundCount+1, [{round, RoundCount, {matches, R}}|Tournament]).
+
+flatten_matches({rider, _, _}=R) ->
+    [{winner, R}];
+flatten_matches({{rider, _, _}=R1, {rider, _, _}=R2}) ->
+    [{match, R1, R2}];
+flatten_matches({T1, T2}) ->
+    THM = flatten_matches(T1),
+    BHM = flatten_matches(T2),
+    lists:flatten([THM] ++ [BHM]).
+
+mapfoldlfun({match, R1, R2}, Acc) ->
+    {{match, Acc, {riders, R1, R2}}, Acc+1};
+mapfoldlfun(X, Acc) ->
+    {X, Acc}.
+
