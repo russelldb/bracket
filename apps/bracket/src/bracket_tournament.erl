@@ -10,7 +10,7 @@
 -module(bracket_tournament).
 
 %% API
--export([tournament/1, first_round/1, next_round/2]).
+-export([tournament/1]).
 
 %%%===================================================================
 %%% API
@@ -24,28 +24,13 @@
 tournament(Riders) when is_list(Riders) ->
     Riders2 = add_byes(Riders),
     Seeded = seed(Riders2),
-    tourny(Seeded).
-
-first_round(Riders) when is_list(Riders) ->
-    Riders2 = add_byes(Riders),
-    Seeded = seed(Riders2),
     Matches = bracket_math:matches(Seeded),
     R1 = bracket_math:flatten([Matches], 1, 1, []),
     rounds(R1, bracket_math:rounds(length(Riders))).
 
-
-rounds(Rounds, RCount) when is_list(Rounds), length(Rounds) =:= RCount ->
-    lists:reverse(Rounds);
-rounds([Round|_]=Rounds, RCount) ->
-    rounds([next_round(Round, 4)|Rounds], RCount).
-
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-tourny(Riders) ->
-    Matches = bracket_math:matches(Riders),
-    Tourny = bracket_math:rounds(Matches, []),
-    bracket_math:flatten_tournament(Tourny).
 
 %%% Really need to randomise the seeding of the unseeded riders...
 seed(Riders) ->
@@ -71,23 +56,33 @@ add_byes(Riders) ->
 	    Riders ++ lists:duplicate(bracket_math:byes(Len), {rider, {seed, 0}, {name, bye}})
     end.
 
-%%% Takes a Term::round and generates the next round from it
-next_round({round, RNum, {matches, Matches}}, MNum) ->
-    NextMatches = next_matches(Matches, MNum, []),
-   {round, RNum+1, {matches, NextMatches}}.
+rounds([{round, 1, {matches, M}}]=Rounds, RCount) ->
+    rounds(Rounds, RCount, length(M)).
 
+%%% Generates the rest of the rounds for the given list of Rounds
+rounds(Rounds, RCount, _) when is_list(Rounds), length(Rounds) =:= RCount ->
+    lists:reverse(Rounds);
+rounds([Round|_]=Rounds, RCount, MatchCount) ->
+    {NextRound, NewMatchCount} = next_round(Round, MatchCount), 
+    rounds([NextRound|Rounds], RCount, NewMatchCount).
+
+%%% Takes a Term::round and generates the next round from it
+next_round({round, RoundNum, {matches, Matches}}, MatchCount) ->
+    NextMatches = next_matches(Matches, MatchCount, []),
+   {{round, RoundNum+1, {matches, NextMatches}}, MatchCount + length(NextMatches)}.
+
+%%% Generates the next matches from a list of matches
 next_matches([], _, Acc) ->
     lists:reverse(Acc);
-next_matches([{match, MNum1, {riders, R1, R2}}], MNum, Acc) ->
-    next_matches([], MNum, [{winner, higher_seed(R1, R2)}|Acc]);
-next_matches([{match, MNum1, {riders, R1, R2}}, {match, MNum2, {riders, R3, R4}}|Matches], MNum, Acc) ->
-    NextMatchNum = MNum +1,
-    Match = {match, NextMatchNum, {riders, higher_seed(R1, R2), higher_seed(R3, R4)}},
+next_matches([{match, _, {riders, Rider1, Rider2}}], MatchCount, Acc) ->
+    next_matches([], MatchCount, [{winner, higher_seed(Rider1, Rider2)}|Acc]);
+next_matches([{match, _, {riders, Rider1, Rider2}}, {match, _, {riders, Rider3, Rider4}}|Matches], MatchCount, Acc) ->
+    NextMatchNum = MatchCount +1,
+    Match = {match, NextMatchNum, {riders, higher_seed(Rider1, Rider2), higher_seed(Rider3, Rider4)}},
     next_matches(Matches, NextMatchNum, [Match|Acc]).
 
-higher_seed({rider, {seed, A}, _}=R1, {rider, {seed, B}, _}=R2) when A =< B ->
+%%% Returns the higher of two seeded riders
+higher_seed({rider, {seed, A}, _}=R1, {rider, {seed, B}, _}) when A =< B ->
     R1;
-higher_seed({rider, {seed, A}, _}=R1, {rider, {seed, B}, _}=R2) when B =< A ->
+higher_seed({rider, {seed, A}, _}, {rider, {seed, B}, _}=R2) when B =< A ->
     R2.
-
-    
