@@ -43,7 +43,7 @@ seed([], _, Seeded) ->
     lists:reverse(Seeded);
 seed([#rider{seed=0}=R|Riders], CurrentSeed, Seeded) ->
     Seed = CurrentSeed + 1,
-    seed(Riders, Seed, [R|Seeded]);
+    seed(Riders, Seed, [R#rider{seed=Seed}|Seeded]);
 seed([#rider{seed=N}=Rider|Riders], _CurrentSeed, Seeded) ->
     seed(Riders, N, [Rider|Seeded]).
 
@@ -79,9 +79,9 @@ next_matches([], _, Acc) ->
     lists:reverse(Acc);
 next_matches([#match{rider1=Rider1, rider2=Rider2}], MatchCount, Acc) ->
     next_matches([], MatchCount, [{champion, higher_seed(Rider1, Rider2)}|Acc]);
-next_matches([#match{rider1=Rider1, rider2=Rider2}, #match{rider1=Rider3, rider2=Rider4}|Matches], MatchCount, Acc) ->
+next_matches([#match{}=Match1, #match{}=Match2|Matches], MatchCount, Acc) ->
     NextMatchNum = MatchCount +1,
-    Match = #match{number=NextMatchNum, rider1=higher_seed(Rider1, Rider2), rider2=higher_seed(Rider3, Rider4), result=#result{}},
+    Match = #match{number=NextMatchNum, rider1=winner(Match1), rider2=winner(Match2), result=#result{}},
     %%    Match = {match, NextMatchNum, {riders, higher_seed(Rider1, Rider2), higher_seed(Rider3, Rider4)}},
     next_matches(Matches, NextMatchNum, [Match|Acc]).
 
@@ -90,3 +90,12 @@ higher_seed(#rider{seed=A}=R1, #rider{seed=B}) when A =< B ->
     R1;
 higher_seed(#rider{seed=A}, #rider{seed=B}=R2) when B =< A ->
     R2.
+
+%%% winner or highest seed
+winner(#match{rider1=R1, result=#result{winner=R1}}) ->
+    R1;
+winner(#match{rider2=R2, result=#result{winner=R2}}) ->
+    R2;
+winner(#match{number=MatchNumber, rider1=R1, rider2=R2, result=_}) ->
+    #rider{seed=RiderSeed} = higher_seed(R1, R2),
+    #rider{name="Winner of match " ++ integer_to_list(MatchNumber), seed=RiderSeed}.
