@@ -10,6 +10,8 @@
 %% API
 -export([generate/1]).
 
+-include("bracket.hrl").
+
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -32,4 +34,4 @@ generate(N, N, Acc) ->
 generate(N, Seed, Acc) ->
     NewSeed = Seed + 1,
     RiderName = "Rider " ++ integer_to_list(NewSeed),
-    generate(N, NewSeed, [{rider, {seed, NewSeed}, {name, RiderName}}|Acc]).
+    generate(N, NewSeed, [#rider{name=RiderName, seed=NewSeed}|Acc]).

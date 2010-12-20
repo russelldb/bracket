@@ -12,6 +12,8 @@
 %% API
 -export([tournament/1]).
 
+-include("bracket.hrl").
+
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -32,17 +34,17 @@ tournament(Riders) when is_list(Riders) ->
 %%% Internal functions
 %%%===================================================================
 
-%%% Really need to randomise the seeding of the unseeded riders...
+%%% Really need to randomise the seeding of the unseeded riders...assumes a "sorted" list with lowest seed (1) upto highest (0)
 seed(Riders) ->
     seed(Riders, 0, []).
 
 %%% If any riders have a zero (0) seed, give them the next available seed (Zero is unseeded)
 seed([], _, Seeded) ->
     lists:reverse(Seeded);
-seed([{rider, {seed, 0}, Name}|Riders], CurrentSeed, Seeded) ->
+seed([#rider{seed=0}=R|Riders], CurrentSeed, Seeded) ->
     Seed = CurrentSeed + 1,
-    seed(Riders, Seed, [{rider, {seed, Seed}, Name}|Seeded]);
-seed([{rider, {seed, N}, _}=Rider|Riders], _CurrentSeed, Seeded) ->
+    seed(Riders, Seed, [R|Seeded]);
+seed([#rider{seed=N}=Rider|Riders], _CurrentSeed, Seeded) ->
     seed(Riders, N, [Rider|Seeded]).
 
 %%% Add any byes needed to the list of riders. Are added to the end of the list and they are all
@@ -53,7 +55,7 @@ add_byes(Riders) ->
 	true ->
 	    Riders;
 	false  ->
-	    Riders ++ lists:duplicate(bracket_math:byes(Len), {rider, {seed, 0}, {name, bye}})
+	    Riders ++ lists:duplicate(bracket_math:byes(Len), #rider{seed=0, name=bye})
     end.
 
 %%% Set up the match count
@@ -75,15 +77,16 @@ next_round({round, RoundNum, {matches, Matches}}, MatchCount) ->
 %%% Generates the next matches from a list of matches
 next_matches([], _, Acc) ->
     lists:reverse(Acc);
-next_matches([{match, _, {riders, Rider1, Rider2}}], MatchCount, Acc) ->
-    next_matches([], MatchCount, [{winner, higher_seed(Rider1, Rider2)}|Acc]);
-next_matches([{match, _, {riders, Rider1, Rider2}}, {match, _, {riders, Rider3, Rider4}}|Matches], MatchCount, Acc) ->
+next_matches([#match{rider1=Rider1, rider2=Rider2}], MatchCount, Acc) ->
+    next_matches([], MatchCount, [{champion, higher_seed(Rider1, Rider2)}|Acc]);
+next_matches([#match{rider1=Rider1, rider2=Rider2}, #match{rider1=Rider3, rider2=Rider4}|Matches], MatchCount, Acc) ->
     NextMatchNum = MatchCount +1,
-    Match = {match, NextMatchNum, {riders, higher_seed(Rider1, Rider2), higher_seed(Rider3, Rider4)}},
+    Match = #match{number=NextMatchNum, rider1=higher_seed(Rider1, Rider2), rider2=higher_seed(Rider3, Rider4), result=#result{}},
+    %%    Match = {match, NextMatchNum, {riders, higher_seed(Rider1, Rider2), higher_seed(Rider3, Rider4)}},
     next_matches(Matches, NextMatchNum, [Match|Acc]).
 
 %%% Returns the higher of two seeded riders
-higher_seed({rider, {seed, A}, _}=R1, {rider, {seed, B}, _}) when A =< B ->
+higher_seed(#rider{seed=A}=R1, #rider{seed=B}) when A =< B ->
     R1;
-higher_seed({rider, {seed, A}, _}, {rider, {seed, B}, _}=R2) when B =< A ->
+higher_seed(#rider{seed=A}, #rider{seed=B}=R2) when B =< A ->
     R2.
