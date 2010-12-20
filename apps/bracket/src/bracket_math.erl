@@ -12,6 +12,8 @@
 %%-export([rounds/1, byes/1, tournament/1, is_pow2/1]).
 -compile(export_all).
 
+-include("bracket.hrl").
+
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -46,36 +48,6 @@ matches(L) when is_list(L) ->
     matches(L3).
 
 
-%%--------------------------------------------------------------------
-%% @doc All the rounds following the starting matches
-%% @spec rounds(1stRound::term()) -> {Rounds::term()}
-%% @end
-%%--------------------------------------------------------------------
-rounds({rider, _, _}=R, Acc) ->
-    lists:reverse([R|Acc]);
-rounds(M, Acc) ->
-    rounds(next_round(M), [M|Acc]).
-
-%%--------------------------------------------------------------------
-%% @doc next_round the matches for the all the following round of  param Round
-%% @spec next_round(Round::term()) -> {Rounds::term()}
-%% @end
-%%--------------------------------------------------------------------
-next_round({{rider, {seed, A}, _}=R1, {rider, {seed, B}, _}=R2}) ->
-    case smaller({A, B}) of
-	A ->
-	    R1;
-	B ->
-	    R2
-    end;
-next_round({T, B}) ->
-    {next_round(T), next_round(B)}.
-
-smaller({TH, BH}) when is_integer(TH), is_integer(BH), TH =< BH ->
-    TH;
-smaller({TH, BH}) when is_integer(TH), is_integer(BH), BH < TH ->
-    BH.
-
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
@@ -93,10 +65,6 @@ log2(N) when is_integer(N) ->
 is_pow2(X) ->
     ( (X > 0) and  ((X band (X - 1)) == 0) ).
 
-%%% Take the tournament and make it flat
-flatten_tournament(Tournament) ->
-    flatten(Tournament, 1, 1, []).
-
 %%Flattens the rounds of a tournment and adds round and match numbers to the data
 flatten([], _, _, Tournament) ->
     lists:reverse(Tournament);
@@ -107,9 +75,9 @@ flatten([Round|Rounds], MatchCount, RoundCount, Tournament) ->
     flatten(Rounds, NewMatchCount, RoundCount+1, [{round, RoundCount, {matches, Matches}}|Tournament]).
 
 %%% Matches are deeply nested tuples, this un-nests them
-flatten_matches({rider, _, _}=R) ->
+flatten_matches(#rider{}=R) ->
     [{winner, R}];
-flatten_matches({{rider, _, _}=R1, {rider, _, _}=R2}) ->
+flatten_matches({#rider{}=R1, #rider{}=R2}) ->
     [{match, R1, R2}];
 flatten_matches({T1, T2}) ->
     THM = flatten_matches(T1),
@@ -118,7 +86,16 @@ flatten_matches({T1, T2}) ->
 
 %%% Used to map/fold the match into a match with a number
 mapfoldlfun({match, R1, R2}, MatchCount) ->
-    {{match, MatchCount, {riders, R1, R2}}, MatchCount+1};%%% add winner tuple, and add a winner if there is a bye rider
+    Match = #match{number=MatchCount, rider1=R1, rider2=R2, result=generate_result(R1, R2)},
+    {Match, MatchCount+1};%%% add winner tuple, and add a winner if there is a bye rider
 mapfoldlfun(X, MatchCount) ->
     {X, MatchCount}.
+
+%%% Generates a result for the two riders (if one is a bye the other is the winner)
+generate_result(#rider{name=bye}, Rider) ->
+    #result{winner=Rider};
+generate_result(Rider, #rider{name=bye}) ->
+    #result{winner=Rider};
+generate_result(_Rider1, _Rider2) ->
+    #result{}.
 

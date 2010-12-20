@@ -2,36 +2,30 @@
 %%% @author Russell Brown <russell@ossme.net>
 %%% @copyright (C) 2010, Russell Brown
 %%% @doc
+%%% turn an internal tournament representation into JSON
 %%% @end
-%%% Created :  15 Dec 2010 by Russell Brown <russell@ossme.net>
+%%% Created : 20 Dec 2010 by Russell Brown <russell@ossme.net>
 %%%-------------------------------------------------------------------
--module(bracket_test).
+-module(bracket_json).
 
 %% API
--export([generate/1]).
-
--include("bracket.hrl").
+-export([to_json/1, from_json/1]).
 
 %%%===================================================================
 %%% API
 %%%===================================================================
 
 %%--------------------------------------------------------------------
-%% @doc generates some dummy riders, to cut down on my typing when testing
-%% Generates as many riders as specified. Seeds will be allocated in order.
-%% @spec generate(N::integer()) -> Riders::list().
+%% @doc to_json turns a Tournament() into a JSON string
+%% @spec to_json(Tournament::tournament()) -> Json:json().
 %% @end
 %%--------------------------------------------------------------------
-generate(N) when is_integer(N) ->
-    generate(N, 0, []).
-    
+to_json(T) ->
+    ok.
+
+from_json(T) ->
+    ok.
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-generate(N, N, Acc) ->
-    lists:reverse(Acc);
-generate(N, Seed, Acc) ->
-    NewSeed = Seed + 1,
-    RiderName = "Rider " ++ integer_to_list(NewSeed),
-    generate(N, NewSeed, [#rider{name=RiderName, seed=NewSeed}|Acc]).
