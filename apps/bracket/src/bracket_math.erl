@@ -100,11 +100,11 @@ flatten_tournament(Tournament) ->
 %%Flattens the rounds of a tournment and adds round and match numbers to the data
 flatten([], _, _, Tournament) ->
     lists:reverse(Tournament);
-flatten([Round|Rounds], MCount, RoundCount, Tournament) ->
+flatten([Round|Rounds], MatchCount, RoundCount, Tournament) ->
     L = flatten_matches(Round),
-    {R, C} = lists:mapfoldl(fun mapfoldlfun/2,
-			    MCount, L),
-    flatten(Rounds, C, RoundCount+1, [{round, RoundCount, {matches, R}}|Tournament]).
+    {Matches, NewMatchCount} = lists:mapfoldl(fun mapfoldlfun/2,
+			    MatchCount, L),
+    flatten(Rounds, NewMatchCount, RoundCount+1, [{round, RoundCount, {matches, Matches}}|Tournament]).
 
 %%% Matches are deeply nested tuples, this un-nests them
 flatten_matches({rider, _, _}=R) ->
@@ -117,8 +117,8 @@ flatten_matches({T1, T2}) ->
     lists:flatten([THM] ++ [BHM]).
 
 %%% Used to map/fold the match into a match with a number
-mapfoldlfun({match, R1, R2}, Acc) ->
-    {{match, Acc, {riders, R1, R2}}, Acc+1};
-mapfoldlfun(X, Acc) ->
-    {X, Acc}.
+mapfoldlfun({match, R1, R2}, MatchCount) ->
+    {{match, MatchCount, {riders, R1, R2}}, MatchCount+1};%%% add winner tuple, and add a winner if there is a bye rider
+mapfoldlfun(X, MatchCount) ->
+    {X, MatchCount}.
 

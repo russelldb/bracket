@@ -56,6 +56,7 @@ add_byes(Riders) ->
 	    Riders ++ lists:duplicate(bracket_math:byes(Len), {rider, {seed, 0}, {name, bye}})
     end.
 
+%%% Set up the match count
 rounds([{round, 1, {matches, M}}]=Rounds, RCount) ->
     rounds(Rounds, RCount, length(M)).
 
