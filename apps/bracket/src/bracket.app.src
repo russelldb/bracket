@@ -1,11 +1,16 @@
+%%-*- mode: erlang -*-
 {application, bracket,
  [
-  {description, ""},
+  {description, "bracket"},
   {vsn, "1"},
+  {modules, []},
   {registered, []},
   {applications, [
                   kernel,
-                  stdlib
+                  stdlib,
+                  crypto,
+                  mochiweb,
+                  webmachine
                  ]},
   {mod, { bracket_app, []}},
   {env, []}
