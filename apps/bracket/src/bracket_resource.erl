@@ -1,13 +1,19 @@
-%% @author author <author@example.com>
-%% @copyright YYYY author.
-%% @doc Example webmachine_resource.
+%% @author Russell Brown <russell@ossme.net>
+%% @copyright 2010 Russell Brown.
+%% @doc basic bracket_resource.
 
 -module(bracket_resource).
--export([init/1, to_html/2]).
+-export([init/1, allowed_methods/2, content_types_provided/2, to_json/2]).
 
 -include_lib("webmachine/include/webmachine.hrl").
 
 init([]) -> {ok, undefined}.
 
-to_html(ReqData, State) ->
-    {bracket_json:to_json(bracket_tournament:tournament(bracket_test:generate(8))), ReqData, State}.
+to_json(ReqData, State) ->
+    {bracket_json:to_json(bracket_tournament:tournament(bracket_test:generate(32))), ReqData, State}.
+
+content_types_provided(Req, Context) ->
+    {[{"application/json", to_json}], Req, Context}.
+
+allowed_methods(Req, Context) ->
+    {['GET'], Req, Context}.
