@@ -17,11 +17,12 @@ function tourny() {
     //grab the json
     $.getJSON("bracket", function(data) {	
 	rounds = data.length;
+	riders = Math.pow(2, rounds);
 
 	paper = Raphael("canvas", $(window).width(),
-	$(window).height() * (Math.floor( Math.pow(2, rounds) / 16) ));
+	$(window).height() * (Math.floor( riders / 16) ));
 	
-	roundWidth = Math.floor(paper.width / (rounds*2));
+	roundWidth = Math.floor(paper.width / (rounds+1));
 
 
 
