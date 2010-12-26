@@ -15,21 +15,26 @@ var paper;
 	
 function tourny() {
     //grab the json
-    $.getJSON("bracket", function(data) {	
-	rounds = data.length;
-	riders = Math.pow(2, rounds);
+    $.ajax({url: "bracket",
+	data: {n: 18},
+        dataType: 'json',
+        success: function(data) {	
+	    rounds = data.length;
+	    riders = Math.pow(2, rounds);
 
-	paper = Raphael("canvas", $(window).width(),
-	$(window).height() * (Math.floor( riders / 16) ));
+	    paper = Raphael("canvas", $(window).width(),
+	    $(window).height() * (Math.floor( riders / 16) ));
 	
-	roundWidth = Math.floor(paper.width / (rounds+1));
+       	    roundWidth = Math.floor(paper.width / (rounds+1));
 
-
-
-	for(var i = 0; i < rounds; i++) {
-	    drawRound(data[i].round, roundWidth, i);
-	}
-   });
+	    for(var i = 0; i < rounds; i++) {
+	      drawRound(data[i].round, roundWidth, i);
+	   }
+      },
+      error: function() {
+	alert("Bad request")
+    }
+ });
 }
 
 function drawRound(round, roundWidth, roundWidthMultiplier) {
