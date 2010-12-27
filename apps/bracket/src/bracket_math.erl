@@ -86,10 +86,18 @@ flatten_matches({T1, T2}) ->
 
 %%% Used to map/fold the match into a match with a number
 mapfoldlfun({match, R1, R2}, MatchCount) ->
-    Match = #match{number=MatchCount, rider1=R1, rider2=R2, result=generate_result(R1, R2)},
-    {Match, MatchCount+1};%%% add winner tuple, and add a winner if there is a bye rider
+    {MatchNumber, NextMatchNumber} = match_number_and_next(MatchCount, R1, R2),
+    Match = #match{number=MatchNumber, rider1=R1, rider2=R2, result=generate_result(R1, R2)},
+    {Match, NextMatchNumber};
 mapfoldlfun(X, MatchCount) ->
     {X, MatchCount}.
+
+match_number_and_next(MatchCount, #rider{name=bye}, _R2) ->
+    {0, MatchCount};
+match_number_and_next(MatchCount, _R1, #rider{name=bye}) ->
+    {0, MatchCount};
+match_number_and_next(MatchCount, _, _) ->
+    {MatchCount, MatchCount+1}.
 
 %%% Generates a result for the two riders (if one is a bye the other is the winner)
 generate_result(#rider{name=bye}, Rider) ->

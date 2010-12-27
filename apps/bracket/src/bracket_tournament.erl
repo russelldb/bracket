@@ -60,7 +60,7 @@ add_byes(Riders) ->
 
 %%% Set up the match count
 rounds([{round, 1, {matches, M}}]=Rounds, RCount) ->
-    rounds(Rounds, RCount, length(M)).
+    rounds(Rounds, RCount, highest(M)).
 
 %%% Generates the rest of the rounds for the given list of Rounds
 rounds(Rounds, RCount, _) when is_list(Rounds), length(Rounds) =:= RCount ->
@@ -99,3 +99,15 @@ winner(#match{rider2=R2, result=#result{winner=R2}}) ->
 winner(#match{number=MatchNumber, rider1=R1, rider2=R2, result=_}) ->
     #rider{seed=RiderSeed} = higher_seed(R1, R2),
     #rider{name="Winner of match " ++ integer_to_list(MatchNumber), seed=RiderSeed}.
+
+%%% Get the highest match in the list of matchs in a round. (so we can get match numbers for subsequent rounds)
+highest(M) ->
+    highest(M, 0).
+
+%%% Helper for highest
+highest([], Highest) ->
+    Highest;
+highest([#match{number=N}|T], CurrentHighest) when N > CurrentHighest ->
+    highest(T, N);
+highest([#match{number=N}|T], CurrentHighest) when N =< CurrentHighest ->
+    highest(T, CurrentHighest).
