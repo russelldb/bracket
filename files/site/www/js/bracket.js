@@ -6,25 +6,32 @@ var n_riders = 22;
 function tourny() {
     //grab the json
     $.ajax({url: "bracket",
-	data: {n: n_riders},
-        dataType: 'json',
-        success: function(data) {	
-	    rounds = data.length;
-	    riders = Math.pow(2, rounds);
+	    data: {n: n_riders},
+            dataType: 'json',
+            success: draw_tournament,
+	    error: function() {
+		alert("Bad request")
+	    }
+	   });
+}
 
-	    paper = Raphael("canvas", $(window).width(),
-	    $(window).height() * (Math.floor( riders / 16) ));
-	
-       	    roundWidth = Math.floor(paper.width / (rounds+1));
+function draw_tournament(data) {
+    rounds = data.length;
+    riders = Math.pow(2, rounds);
+    
+    if(paper) {
+	paper.clear();
+    } 
 
-	    for(var i = 0; i < rounds; i++) {
-	      drawRound(data[i].round, roundWidth, i);
-	   }
-      },
-      error: function() {
-	alert("Bad request")
+    paper = Raphael("canvas", $(window).width(),
+		    $(window).height() * (Math.floor( riders / 16) ));
+
+    
+    roundWidth = Math.floor(paper.width / (rounds+1));
+    
+    for(var i = 0; i < rounds; i++) {
+	drawRound(data[i].round, roundWidth, i);
     }
- });
 }
 
 function drawRound(round, roundWidth, roundWidthMultiplier) {
@@ -104,6 +111,6 @@ function remove_current(evt) {
 }
 
 function send_riders() {
-    $.post("bracket", $("#riders").serialize());
+    $.post("bracket", $("#riders").serialize(), draw_tournament);
 }
 
