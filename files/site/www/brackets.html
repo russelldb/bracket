@@ -3,77 +3,44 @@
 <html lang="en"> 
     <head> 
         <meta charset="utf-8"> 
-        <title>Brackets</title> 
+        <title>Brackets</title>
+        <link rel="stylesheet" href="style/bracket.css" type="text/css" />
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
-        <script src="raphael-min.js"></script> 
-    </head> 
-    <body> 
-        <div id="canvas"></div> 
+        <script src="raphael-min.js"></script>
+        <script src="js/bracket.js"></script>
+        <script src="js/jquery.hotkeys.js"></script>
 <script>
-                
-var paper; 
-	
-function tourny() {
-    //grab the json
-    $.getJSON("bracket", function(data) {	
-	rounds = data.length;
-	riders = Math.pow(2, rounds);
-
-	paper = Raphael("canvas", $(window).width(),
-	$(window).height() * (Math.floor( riders / 16) ));
-	
-	roundWidth = Math.floor(paper.width / (rounds+1));
-
-
-
-	for(var i = 0; i < rounds; i++) {
-	    drawRound(data[i].round, roundWidth, i);
-	}
-   });
-}
-
-function drawRound(round, roundWidth, roundWidthMultiplier) {
-  var mx = roundWidth * roundWidthMultiplier;
-  var lx = roundWidth * (roundWidthMultiplier + 1);
-	
-  var yOff = paper.height / (round.matches.length * 4);
-
-  var sy = yOff;
-	
-  for(var x=0; x < round.matches.length; x++) {
-    var match = round.matches[x].match;
-    	
-    drawLine(mx, sy, lx, sy);
-    writeName(mx + 5, sy - 10, match.rider1.rider.name);
-
-    paper.text(mx + (roundWidth / 2), sy + yOff - 5, "Match " + match.number).attr({"text-anchor": "start", "font-size": 13});
-	
-    sy = sy + yOff;
-    sy = sy + yOff;
-	
-    drawLine(mx, sy, lx, sy);
-    writeName(mx + 5, sy - 10, match.rider2.rider.name);
-
-    drawLine(lx, sy , lx,  sy - ( yOff * 2 ) );
-
-    sy = sy + yOff;
-    sy = sy + yOff;
-  }
-}
-
-function writeName(x, y, name) {
-    paper.text(x, y, name).attr({"text-anchor": "start", "font-size": 15});
-}
-
-function drawLine(sx, sy, ex, ey) {
-    paper.path([["M", sx, sy], ["L", ex, ey]]);
-}
-
 $(document).ready(function() {
-    tourny();
+   tourny();
  });
 
+$(document).bind('keydown', 'ctrl+a',  reveal);
+$(document).bind('keydown', 'esc', reveal);
+$(document).bind('keydown', 'ctrl+n', next_rider);
+$(document).bind('keydown', 'ctrl+d', remove_last);
 </script>
 
-    </body> 
+</head>
+<body>
+<div id="panel">
+<div class="lefty">
+  <h4>Name</h4>
+</div>
+<div class="righty">
+  <h4>Seed</h4>
+</div>
+<form id="riders">
+<div class="inputs">
+<div class="lefty">
+ <input name="rider" type="text" size="25"/>
+</div>
+<div class="righty">
+ <input name="seed" type="text" size="3"/>
+</div>
+</div>
+</form>
+<span id="add">&nbsp;</span>
+</div>
+<div id="canvas"></div>
+</body> 
 </html> 
