@@ -10,7 +10,7 @@
 -module(bracket_tournament).
 
 %% API
--export([tournament/1]).
+-export([tournament/1, update/1]).
 
 -include("bracket.hrl").
 
@@ -30,9 +30,38 @@ tournament(Riders) when is_list(Riders) ->
     R1 = bracket_math:flatten([Matches], 1, 1, []),
     rounds(R1, bracket_math:rounds(length(Riders))).
 
+%%--------------------------------------------------------------------
+%% @doc update takes an existing tournament and generates the matches for any results
+%% @spec update(Tournament::tournament()) -> Tournament::tournament()
+%% @end
+%%--------------------------------------------------------------------
+update(Tournament) ->
+    Rounds = started_rounds(Tournament, []),
+    rounds(Rounds, length(Tournament), highest_match(hd(Rounds))).
+
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+started_rounds([H|T], Acc) ->
+    case started(H) of 
+	true ->
+	    started_rounds(T, [H|Acc]);
+	false ->
+	    Acc
+    end.
+
+%%% Has the given round been started?
+started({round, _, {matches, M}}) ->
+    has_winners(M).
+
+%%% does the list of matches have any winners?
+has_winners([]) ->
+    false;
+has_winners([#match{result=#result{winner=[]}}|T]) ->
+    has_winners(T);
+has_winners([#match{result=#result{winner=#rider{}}}|_]) ->
+    true.
+
 
 %%% Really need to randomise the seeding of the unseeded riders...assumes a "sorted" list with lowest seed (1) upto highest (0)
 seed(Riders) ->
@@ -99,6 +128,10 @@ winner(#match{rider2=R2, result=#result{winner=R2}}) ->
 winner(#match{number=MatchNumber, rider1=R1, rider2=R2, result=_}) ->
     #rider{seed=RiderSeed} = higher_seed(R1, R2),
     #rider{name="Winner of match " ++ integer_to_list(MatchNumber), seed=RiderSeed}.
+
+%%% Get the highest numbered match in the given round
+highest_match({round, _, {matches, M}}) ->
+    highest(M).
 
 %%% Get the highest match in the list of matchs in a round. (so we can get match numbers for subsequent rounds)
 highest(M) ->

@@ -4,6 +4,7 @@
 
 -module(bracket_resource).
 -export([init/1, allowed_methods/2, content_types_provided/2, to_json/2, post_is_create/2, process_post/2]).
+-export([process_put/2, content_types_accepted/2]).
 
 -include_lib("webmachine/include/webmachine.hrl").
 
@@ -25,7 +26,7 @@ content_types_provided(Req, Context) ->
     {[{"application/json", to_json}], Req, Context}.
 
 allowed_methods(Req, Context) ->
-    {['GET','POST'], Req, Context}.
+    {['GET','POST', 'PUT'], Req, Context}.
 
 post_is_create(Req, Context) ->
     {false, Req, Context}.
@@ -41,8 +42,17 @@ process_post(Req, Context) ->
     JSON = bracket_json:to_json(T),
     {true, wrq:set_resp_body(JSON, Req), Context}.
 
-%%content_types_accepted(Req, Context) ->
-%%  {[{"application/x-www-form-urlencoded", process_post}], Req, Context}.
+process_put(Req, Context) ->
+    Data = wrq:req_body(Req),
+    T = bracket_json:from_json(Data),
+    error_logger:info_msg("T = ~p~n", [T]),
+    T2 = bracket_tournament:update(T),
+    error_logger:info_msg("Updated = ~p~n", [T2]),
+    JSON = bracket_json:to_json(T2),
+    {true, wrq:set_resp_body(JSON, Req), Context}.
+
+content_types_accepted(Req, Context) ->
+  {[{"application/x-www-form-urlencoded", process_post}, {"application/json", process_put}], Req, Context}.
 
 get_qs_value(Key, ReqData, Default) ->
     get_qs_value(wrq:get_qs_value(Key, ReqData), Default).

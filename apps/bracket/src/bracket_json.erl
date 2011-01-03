@@ -9,10 +9,10 @@
 -module(bracket_json).
 
 %% API
-%-export([to_json/1, from_json/1]).
+-export([to_json/1, from_json/1]).
 
 -include("bracket.hrl").
--compile(export_all).
+
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -26,11 +26,13 @@ to_json(T) ->
     mochijson:encode(encode(T, [])).
 
 from_json(T) ->
-    ok.
+    decode(mochijson:decode(T)).
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+encode([]) ->
+    "";
 encode(undefined) ->
     "";
 encode(T) when is_record(T, rider) ->
@@ -49,3 +51,31 @@ encode([], Acc) ->
 encode([H|T], Acc) ->
     encode(T, [encode(H)|Acc]).
 
+decode({array, A}) ->
+    decode(A, []);
+decode([{"round", Round}]) ->
+   decode_round(Round);
+decode([{"match", Match}]) ->
+    decode_match(Match).
+
+decode([], Acc) ->
+    lists:reverse(Acc);
+decode([{struct, Obj}|T], Acc) ->
+    decode(T, [decode(Obj)|Acc]).
+    
+
+
+decode_round({struct, Round}) ->
+    {round, proplists:get_value("number", Round), {matches, decode(proplists:get_value("matches", Round))}}.
+
+decode_match({struct, Match}) ->
+    #match{number=proplists:get_value("number", Match), rider1=decode_rider(proplists:get_value("rider1", Match)), rider2=decode_rider(proplists:get_value("rider2", Match)),
+	   result=decode_result(proplists:get_value("result", Match))}.
+	      
+decode_rider([]) ->
+    [];
+decode_rider({struct, [{"rider", {struct, Rider}}]}) ->
+    #rider{name=proplists:get_value("name", Rider), seed=proplists:get_value("seed", Rider)}.
+
+decode_result({struct, [{"result", {struct, Result}}]}) ->
+    #result{winner=decode_rider(proplists:get_value("winner", Result)), time1=proplists:get_value("time1", Result), time2=proplists:get_value("time2", Result)}.
