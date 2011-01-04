@@ -4,7 +4,7 @@ var n_riders = 22;
 var tournament;
 
 function tourny() {
-    //grab the json
+    //grab your json
     $.ajax({url: "bracket",
 	    data: {n: n_riders},
             dataType: 'json',
@@ -20,16 +20,16 @@ function draw_tournament(data) {
 	tournament = data;
     }
     rounds = tournament.length;
-    riders = Math.pow(2, rounds);
+    riders = Math.pow(2, (rounds-1));
     
     if(paper) {
 	paper.clear();
     } 
 
-    paper = Raphael("canvas", $(window).width(),
+    paper = Raphael("canvas", ($(window).width() * .95),
 		    $(window).height() * (Math.floor( riders / 16) ));
 
-    roundWidth = Math.floor(paper.width / (rounds+1));
+    roundWidth = Math.floor(paper.width / (rounds));
     
     for(var i = 0; i < rounds; i++) {
 	drawRound(tournament[i].round, roundWidth);
@@ -42,33 +42,45 @@ function drawRound(round, roundWidth) {
     var yOff = paper.height / (round.matches.length * 4);
 
     var sy = yOff;
-	
+
     for(var x=0; x < round.matches.length; x++) {
 	var match = round.matches[x].match;
-	var rider1 = match.rider1.rider;
-	var rider2 = match.rider2.rider;
-	
-	if(rider1.name != "bye" && rider2.name != "bye") {
-	    drawLine(mx, sy, lx, sy);
-	    writeName(mx + 5, sy - 10, match.rider1, round.number, match.number);
+
+	if(match) {
 	    
-            paper.text(mx + (roundWidth / 2), sy + yOff - 5, "Match " + match.number).attr({"text-anchor": "start", "font-size": 13});
-	
-	    sy = sy + yOff;
-	    sy = sy + yOff;
-	
-	    drawLine(mx, sy, lx, sy);
-	    writeName(mx + 5, sy - 10, match.rider2, round.number, match.number);
 
-	    drawLine(lx, sy , lx,  sy - ( yOff * 2 ) );
+	    var rider1 = match.rider1.rider;
+	    var rider2 = match.rider2.rider;
+	
+	    if(rider1.name != "bye" && rider2.name != "bye") {
+		drawLine(mx, sy, lx, sy);
+		writeName(mx + 5, sy - 10, match.rider1, round.number, match.number);
+	    
+		paper.text(mx + (roundWidth / 2), sy + yOff - 5, "Match " + match.number).attr({"text-anchor": "start", "font-size": 13});
+		
+		sy = sy + yOff;
+		sy = sy + yOff;
+	
+		drawLine(mx, sy, lx, sy);
+		writeName(mx + 5, sy - 10, match.rider2, round.number, match.number);
 
-	    sy = sy + yOff;
-	    sy = sy + yOff;
+		drawLine(lx, sy , lx,  sy - ( yOff * 2 ) );
+
+		sy = sy + yOff;
+		sy = sy + yOff;
+	    } else {
+		sy = sy + yOff;
+		sy = sy + yOff;
+		sy = sy + yOff;
+		sy = sy + yOff;
+	    }
+
 	} else {
+	    var champ = round.matches[x].champion;
+	    var champRider = champ.rider;
 	    sy = sy + yOff;
-	    sy = sy + yOff;
-	    sy = sy + yOff;
-	    sy = sy + yOff;
+	    drawLine(mx, sy, lx, sy);
+	    writeName(mx+5, sy-10, champRider, round.number, 0);
 	}
     }
 }

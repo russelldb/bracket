@@ -45,9 +45,7 @@ process_post(Req, Context) ->
 process_put(Req, Context) ->
     Data = wrq:req_body(Req),
     T = bracket_json:from_json(Data),
-    error_logger:info_msg("T = ~p~n", [T]),
     T2 = bracket_tournament:update(T),
-    error_logger:info_msg("Updated = ~p~n", [T2]),
     JSON = bracket_json:to_json(T2),
     {true, wrq:set_resp_body(JSON, Req), Context}.
 

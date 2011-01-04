@@ -43,7 +43,9 @@ encode(T) when is_record(T, result) ->
 encode(T) when is_record(T, match) ->
     {struct, [{match, {struct, [{number, T#match.number}, {rider1, encode(T#match.rider1)}, {rider2, encode(T#match.rider2)}, {result, encode(T#match.result)}]}}]};
 encode({round, N, {matches, M}}) ->
-    {struct, [{round, {struct, [{number, N}, {matches, encode(M, [])}]}}]}.
+    {struct, [{round, {struct, [{number, N}, {matches, encode(M, [])}]}}]};
+encode({champion, Rider}) ->
+    {struct, [{champion, {struct, [{rider, encode(Rider)}]}}]}.
 
 
 encode([], Acc) ->
@@ -56,7 +58,9 @@ decode({array, A}) ->
 decode([{"round", Round}]) ->
    decode_round(Round);
 decode([{"match", Match}]) ->
-    decode_match(Match).
+    decode_match(Match);
+decode([{"champion", Champ}]) ->
+    {champion, decode_rider(Champ)}.
 
 decode([], Acc) ->
     lists:reverse(Acc);

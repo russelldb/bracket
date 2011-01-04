@@ -28,7 +28,7 @@ tournament(Riders) when is_list(Riders) ->
     Seeded = seed(Riders2),
     Matches = bracket_math:matches(Seeded),
     R1 = bracket_math:flatten([Matches], 1, 1, []),
-    rounds(R1, bracket_math:rounds(length(Riders))).
+    rounds(R1, bracket_math:rounds(length(Riders)) + 1).
 
 %%--------------------------------------------------------------------
 %% @doc update takes an existing tournament and generates the matches for any results
@@ -60,7 +60,9 @@ has_winners([]) ->
 has_winners([#match{result=#result{winner=[]}}|T]) ->
     has_winners(T);
 has_winners([#match{result=#result{winner=#rider{}}}|_]) ->
-    true.
+    true;
+has_winners([{champion, _}]) ->
+    false.
 
 
 %%% Really need to randomise the seeding of the unseeded riders...assumes a "sorted" list with lowest seed (1) upto highest (0)
@@ -106,12 +108,11 @@ next_round({round, RoundNum, {matches, Matches}}, MatchCount) ->
 %%% Generates the next matches from a list of matches
 next_matches([], _, Acc) ->
     lists:reverse(Acc);
-next_matches([#match{rider1=Rider1, rider2=Rider2}], MatchCount, Acc) ->
-    next_matches([], MatchCount, [{champion, higher_seed(Rider1, Rider2)}|Acc]);
+next_matches([#match{}=M], MatchCount, Acc) ->
+    next_matches([], MatchCount, [{champion, winner(M)}|Acc]);
 next_matches([#match{}=Match1, #match{}=Match2|Matches], MatchCount, Acc) ->
     NextMatchNum = MatchCount +1,
     Match = #match{number=NextMatchNum, rider1=winner(Match1), rider2=winner(Match2), result=#result{}},
-    %%    Match = {match, NextMatchNum, {riders, higher_seed(Rider1, Rider2), higher_seed(Rider3, Rider4)}},
     next_matches(Matches, NextMatchNum, [Match|Acc]).
 
 %%% Returns the higher of two seeded riders
