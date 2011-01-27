@@ -1,6 +1,6 @@
 var paper; 
 	
-var n_riders = 22;
+var n_riders = 32;
 var tournament;
 
 function tourny() {
