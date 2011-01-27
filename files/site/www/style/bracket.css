@@ -21,6 +21,20 @@ h4 {
     padding: 0 0.5em 0 0.5em;
 }
 
+#changeName {
+    position:absolute;
+    background: #fff;
+    width: 10%;
+    display: none;
+    filter:alpha(opacity=90);
+    -moz-opacity:0.9;
+    -khtml-opacity: 0.9;
+    opacity: 0.9;
+    border: 1px solid black;
+    padding: 0.5em 0.5em 0.5em 0.5em;
+    z-index: 999;
+}
+
 #canvas {
     position: relative;
 }

@@ -37,7 +37,11 @@ tournament(Riders) when is_list(Riders) ->
 %%--------------------------------------------------------------------
 update(Tournament) ->
     Rounds = started_rounds(Tournament, []),
-    rounds(Rounds, length(Tournament), highest_match(hd(Rounds))).
+    case Rounds of
+	[] -> Tournament;
+	_ ->
+	    rounds(Rounds, length(Tournament), highest_match(hd(Rounds)))
+    end.
 
 %%%===================================================================
 %%% Internal functions
