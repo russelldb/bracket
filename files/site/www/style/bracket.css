@@ -34,6 +34,31 @@ h4 {
     padding: 0.5em 0.5em 0.5em 0.5em;
     z-index: 999;
 }
+.hover {
+    cursor: pointer;
+    background: #E6EBE6;
+}
+
+#winner {
+    position:absolute;
+    background: #fff;
+    width: 10%;
+    display: none;
+    filter:alpha(opacity=90);
+    -moz-opacity:0.9;
+    -khtml-opacity: 0.9;
+    opacity: 0.9;
+    border: 1px solid black;
+    padding: 0.5em 0.5em 0.5em 0.5em;
+    z-index: 999;
+}
+
+#winner div {
+    border: 1px solid black;
+    padding: 0.5em;
+    font-face: sans-serif;
+}
+
 
 #canvas {
     position: relative;

@@ -56,8 +56,8 @@ function drawRound(round, roundWidth) {
 		drawLine(mx, sy, lx, sy);
 		writeName(1, mx + 5, sy - 10, match.rider1, round.number, match.number);
 	    
-		paper.text(mx + (roundWidth / 2), sy + yOff - 5, "Match " + match.number).attr({"text-anchor": "start", "font-size": 13});
-		
+		writeMatch(mx + (roundWidth / 2), sy + yOff - 5, match, round.number);
+
 		sy = sy + yOff;
 		sy = sy + yOff;
 	
@@ -83,6 +83,51 @@ function drawRound(round, roundWidth) {
 	    writeName(1, mx+5, sy-10, champRider, round.number, 0);
 	}
     }
+}
+
+//write the match number and bind its events
+function writeMatch(x, y, match, roundNumber) {
+    var n = paper.text(x, y, "Match " + match.number).attr({"text-anchor": "start", "font-size": 13});
+    var node = $(n.node);
+    
+    n.click(function(ev) {
+	function over(event) {
+            $(this).addClass("hover");
+	}
+  
+	function out(event) {
+	    $(this).removeClass("hover");
+	}
+
+	var unbind = function() {
+	    $('#rider1').unbind('click');
+	    $('#rider2').unbind('click');
+	}
+	var height = $('#changeName').height();
+	var width = $('#changeName').width();
+
+	var offset = node.offset();
+	$('#winner').css({left: offset.left-(width / 3),top: offset.top-(height * 2)}).show();
+	$('#rider1').html(match.rider1.rider.name).click(function(ev) { 
+	    update_tournament(match.rider1, match.number, roundNumber); 
+	    $('#winner').hide(); 
+	    unbind();
+	}).hover(over, out);
+	$('#rider2').html(match.rider2.rider.name).click(function(ev) { 
+	    update_tournament(match.rider2, match.number, roundNumber); 
+	    $('#winner').hide(); 
+	    unbind();
+	}).hover(over, out);
+	$('#close').click(function(e) { $('#winner').hide(); }).hover(over, out);
+    });
+
+
+
+    n.hover(function (event) {
+	this.attr({fill: "red", cursor: "pointer"});
+    }, function (event) {
+	this.attr({fill: "black"});
+    });
 }
 
 //Write a riders name and attatch handlers for editting it
