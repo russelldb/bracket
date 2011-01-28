@@ -28,5 +28,7 @@ function remove_current(evt) {
 }
 
 function send_riders() {
+    var gender = $("#gender");
+    $("#riders").append(gender);
     $.post("bracket", $("#riders").serialize(), draw_tournament);
 }

@@ -36,8 +36,10 @@ process_post(Req, Context) ->
     Data1 = mochiweb_util:parse_qs(Data),
     Riders = proplists:get_all_values("rider", Data1),
     Seeds = proplists:get_all_values("seed", Data1),
+    Gender = proplists:get_value("gender", Data1, "M"),
     Entrants = lists:zipwith(fun(X, Y) -> #rider{name=X, seed=list_to_integer(Y)} end, Riders, Seeds),
     SortedEntrants = sort(Entrants),
+    write_sql(Entrants, Gender, []),
     T = bracket_tournament:tournament(SortedEntrants),
     JSON = bracket_json:to_json(T),
     {true, wrq:set_resp_body(JSON, Req), Context}.
@@ -50,7 +52,7 @@ process_put(Req, Context) ->
     {true, wrq:set_resp_body(JSON, Req), Context}.
 
 content_types_accepted(Req, Context) ->
-  {[{"application/x-www-form-urlencoded", process_post}, {"application/json", process_put}], Req, Context}.
+    {[{"application/x-www-form-urlencoded", process_post}, {"application/json", process_put}], Req, Context}.
 
 get_qs_value(Key, ReqData, Default) ->
     get_qs_value(wrq:get_qs_value(Key, ReqData), Default).
@@ -69,4 +71,14 @@ sort(#rider{seed=0}, #rider{seed=_B}) ->
     false;
 sort(#rider{seed=A}, #rider{seed=B}) ->
     A =< B.
-		       
+
+
+write_sql([], _Gender, Acc) ->
+    %% Actually write
+    ok = file:write_file("roster.sql", Acc) ;
+write_sql([#rider{name=Name}|Rest], Gender, Acc) ->
+    write_sql(Rest, Gender, [sql_line(Name, Gender)|Acc]).
+
+sql_line(Name, Gender) ->
+    ["insert into roster (name, time, gender) values (\"", Name, "\", \"00:00:000\", \"", Gender, "\");", "\n"]. 
+
