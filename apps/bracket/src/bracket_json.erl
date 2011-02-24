@@ -36,7 +36,7 @@ encode([]) ->
 encode(undefined) ->
     "";
 encode(T) when is_record(T, rider) ->
-    {struct, [{rider, {struct, [{name, T#rider.name}, {seed, T#rider.seed}]}}]};
+    {struct, [{rider, {struct, [{name, T#rider.name}, {seed, T#rider.seed}, {gender, T#rider.gender}]}}]};
 encode(T) when is_record(T, result) ->
     Winner = encode(T#result.winner),
     {struct, [{result, {struct, [{winner, Winner}, {time1, T#result.time1}, {time2, T#result.time2}]}}]};
@@ -59,7 +59,7 @@ decode([{"round", Round}]) ->
    decode_round(Round);
 decode([{"match", Match}]) ->
     decode_match(Match);
-decode([{"champion", Champ}]) ->
+decode([{"champion", {struct, [{"rider", Champ}]}}]) ->
     {champion, decode_rider(Champ)}.
 
 decode([], Acc) ->
@@ -79,7 +79,7 @@ decode_match({struct, Match}) ->
 decode_rider([]) ->
     [];
 decode_rider({struct, [{"rider", {struct, Rider}}]}) ->
-    #rider{name=proplists:get_value("name", Rider), seed=proplists:get_value("seed", Rider)}.
+    #rider{name=proplists:get_value("name", Rider), seed=proplists:get_value("seed", Rider), gender=proplists:get_value("gender", Rider)}.
 
 decode_result({struct, [{"result", {struct, Result}}]}) ->
     #result{winner=decode_rider(proplists:get_value("winner", Result)), time1=proplists:get_value("time1", Result), time2=proplists:get_value("time2", Result)}.

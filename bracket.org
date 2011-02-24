@@ -1,0 +1,15 @@
+* Add gender to each entrant
+** DONE Add gender awareness to existing code
+** DONE Add gender to input form
+*** DONE Create input form for qualifier round
+* TODO Add all qulifiers to DB
+* TODO Create a bunch of matches as tuples in a list
+** TODO These must be random in order by women must be placed together (maybe randomise then sort so that men are == but women <=)
+* TODO Display matches in browser
+* TODO Add a link to say "All matches done"
+* TODO Add action for When all matches done
+** TODO get all riders from db (ordered by time asc)
+** TODO Seed riders based on time order
+** TODO Generate a bracket based on time
+
+

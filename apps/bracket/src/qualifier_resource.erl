@@ -1,8 +1,13 @@
 %% @author Russell Brown <russell@ossme.net>
 %% @copyright 2010 Russell Brown.
-%% @doc basic bracket_resource.
+%% @doc qualifier resource, takes name/gender and
+%% Adds them to SQLLite
+%% Creates a bunch of matches (random(ish) pairings)
+%% After a race gets the fastest times for the two riders and displays them 
+%% At the end of the qualifier displays the times in order
+%% Generates a bracket based on the fastest N times
 
--module(bracket_resource).
+-module(qualifier_resource).
 -export([init/1, allowed_methods/2, content_types_provided/2, to_json/2, post_is_create/2, process_post/2]).
 -export([process_put/2, content_types_accepted/2]).
 
@@ -30,10 +35,10 @@ to_json(ReqData, State) ->
     end.
 
 content_types_provided(Req, Context) ->
-    {[{"application/json", to_json}], Req, Context}.
+    {[{"text/html", to_json}], Req, Context}.
 
 allowed_methods(Req, Context) ->
-    {['GET','POST', 'PUT'], Req, Context}.
+    {['POST'], Req, Context}.
 
 post_is_create(Req, Context) ->
     {false, Req, Context}.
@@ -43,23 +48,23 @@ process_post(Req, Context) ->
     Data1 = mochiweb_util:parse_qs(Data),
     Riders = proplists:get_all_values("rider", Data1),
     Seeds = proplists:get_all_values("seed", Data1),
-    Gender = proplists:get_value("gender", Data1, "M"),
-    Entrants = lists:zipwith(fun(X, Y) -> #rider{name=X, seed=list_to_integer(Y)} end, Riders, Seeds),
+    Genders = proplists:get_all_values("gender", Data1, "M"),
+    Entrants = lists:zipwith3(fun(X, Y, Z) -> #rider{name=X, seed=list_to_integer(Y), gender=gender(Z)} end, Riders, Seeds, Genders),
     SortedEntrants = sort(Entrants),
-    write_to_db(Entrants, Gender),
+    write_to_db(Entrants),
     T = bracket_tournament:tournament(SortedEntrants),
     JSON = bracket_json:to_json(T),
     {true, wrq:set_resp_body(JSON, Req), Context}.
 
-process_put(Req, Context) ->
-    Data = wrq:req_body(Req),
-    T = bracket_json:from_json(Data),
-    T2 = bracket_tournament:update(T),
-    JSON = bracket_json:to_json(T2),
-    {true, wrq:set_resp_body(JSON, Req), Context}.
+gender("M") ->
+    "M";
+gender("F") ->
+    "F";
+gender(_) ->
+    "M".
 
 content_types_accepted(Req, Context) ->
-    {[{"application/x-www-form-urlencoded", process_post}, {"application/json", process_put}], Req, Context}.
+    {[{"application/x-www-form-urlencoded", process_post}], Req, Context}.
 
 get_qs_value(Key, ReqData, Default) ->
     get_qs_value(wrq:get_qs_value(Key, ReqData), Default).
@@ -79,8 +84,9 @@ sort(#rider{seed=0}, #rider{seed=_B}) ->
 sort(#rider{seed=A}, #rider{seed=B}) ->
     A =< B.
 
-write_to_db([], _) ->
+write_to_db([]) ->
     ok;
-write_to_db([#rider{name=Name}|Riders], Gender) ->
+write_to_db([#rider{name=Name, gender=Gender}|Riders]) ->
     sqlite3:write(gfx, 'Roster', [{name, Name}, {gender, Gender}, {time, "00:00:000"}]),
-    write_to_db(Riders, Gender).
+    write_to_db(Riders).
+

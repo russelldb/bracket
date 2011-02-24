@@ -1,13 +1,13 @@
 function reveal() {
     $("#panel").slideToggle("slow");
-    $("form > div:last-child input[name='seed']").unbind('keydown', next_rider);
-    $("form > div:last-child input[name='seed']").bind('keydown', 'tab', next_rider);
+    $("form > div:last-child input[name='gender']").unbind('keydown', next_rider);
+    $("form > div:last-child input[name='gender']").bind('keydown', 'tab', next_rider);
 }
 
 function next_rider(retVal) {
-    $("form > div:last-child input[name='seed']").unbind('keydown', next_rider);
+    $("form > div:last-child input[name='gender']").unbind('keydown', next_rider);
     $("form > div:first-child").clone(true).insertAfter("form > div:last-child");
-    $("form > div:last-child input[name='seed']").bind('keydown', 'tab', next_rider);
+    $("form > div:last-child input[name='gender']").bind('keydown', 'tab', next_rider);
     $("form > div:last-child input[type=text]").bind('keydown', 'ctrl+d', remove_current);
     $("form > div:last-child input[type=text]").bind('keydown', 'esc', function() {$("#panel").slideToggle("slow");});
     $("form > div:last-child input[type=text]").bind('keydown', 'return', send_riders);
@@ -22,13 +22,13 @@ function remove_last() {
 
 function remove_current(evt) {
     $(evt.currentTarget).parent().parent().remove();
-    $("form > div:last-child input[name='seed']").bind('keydown', 'tab', next_rider);
-    $("form > div:last-child input[name='seed']").focus();
+    $("form > div:last-child input[name='gender']").bind('keydown', 'tab', next_rider);
+    $("form > div:last-child input[name='gender']").focus();
     return false;
 }
 
 function send_riders() {
-    var gender = $("#gender");
-    $("#riders").append(gender);
+   // var gender = $("#gender");
+   // $("#riders").append(gender);
     $.post("bracket", $("#riders").serialize(), draw_tournament);
 }
